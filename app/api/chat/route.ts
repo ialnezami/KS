@@ -1,5 +1,9 @@
 import OpenAI from 'openai';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+
+// Disable SSL verification in development only (for local testing)
+if (process.env.NODE_ENV === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -97,11 +101,28 @@ export async function POST(req: Request) {
       max_tokens: 500,
     });
 
-    // Convert the response into a friendly text-stream
-    const stream = OpenAIStream(response);
+    // Create a readable stream from OpenAI response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of response) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) {
+            controller.enqueue(encoder.encode(text));
+          }
+        }
+        controller.close();
+      },
+    });
 
     // Respond with the stream
-    return new StreamingTextResponse(stream);
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
   } catch (error) {
     console.error('Error in chat API:', error);
     return new Response('Error processing chat request', { status: 500 });
