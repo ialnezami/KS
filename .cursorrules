@@ -1,0 +1,26 @@
+# Project-specific Cursor Rules
+
+## Project Context
+This is a Next.js AI chatbot application with streaming LLM responses and weather integration.
+
+## Key Requirements
+- Use TypeScript for all code
+- Follow Next.js App Router patterns
+- Use Tailwind CSS for styling
+- Implement streaming responses with OpenAI
+- Integrate weather API functionality
+- Support message editing
+
+## Code Standards
+- Use 'use client' directive for client components
+- Keep components modular and focused
+- Use TypeScript interfaces for all data structures
+- Follow React best practices (hooks, state management)
+- Handle errors gracefully with user-friendly messages
+
+## API Routes
+- Use Edge Runtime for performance
+- Implement proper error handling
+- Stream responses for better UX
+- Secure API keys server-side only
+
