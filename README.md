@@ -15,14 +15,14 @@ Une application de chatbot AI moderne avec streaming en temps réel, intégratio
 - **Framework** : Next.js 14
 - **Langage** : TypeScript
 - **UI** : React + Tailwind CSS
-- **LLM** : OpenAI GPT-3.5 Turbo
+- **LLM** : Google Gemini Pro (Gratuit !)
 - **Météo** : OpenWeatherMap API
-- **Streaming** : Vercel AI SDK
+- **Streaming** : Native ReadableStream
 
 ## 📋 Prérequis
 
 - Node.js 18+ et npm
-- Clé API OpenAI
+- Clé API Google Gemini (gratuite !)
 - Clé API OpenWeatherMap (gratuite)
 
 ## 🔧 Installation
@@ -41,13 +41,13 @@ Une application de chatbot AI moderne avec streaming en temps réel, intégratio
    
    Créez un fichier `.env.local` à la racine du projet :
    ```env
-   OPENAI_API_KEY=votre_cle_openai
+   GEMINI_API_KEY=votre_cle_gemini
    WEATHER_API_KEY=votre_cle_openweathermap
    ```
 
    Pour obtenir les clés API :
-   - **OpenAI** : https://platform.openai.com/api-keys
-   - **OpenWeatherMap** : https://openweathermap.org/api
+   - **Google Gemini** : https://makersuite.google.com/app/apikey (GRATUIT)
+   - **OpenWeatherMap** : https://openweathermap.org/api (GRATUIT)
 
 4. **Lancer le serveur de développement**
    ```bash
@@ -65,7 +65,7 @@ Une application de chatbot AI moderne avec streaming en temps réel, intégratio
 1. Pushez votre code sur GitHub
 2. Importez le projet sur [Vercel](https://vercel.com)
 3. Configurez les variables d'environnement :
-   - `OPENAI_API_KEY`
+   - `GEMINI_API_KEY`
    - `WEATHER_API_KEY`
 4. Déployez !
 
@@ -120,7 +120,7 @@ KS/
 ## 🎯 Fonctionnalités Clés
 
 ### Streaming LLM
-Utilise l'API OpenAI avec streaming pour afficher les réponses en temps réel, offrant une meilleure expérience utilisateur.
+Utilise Google Gemini Pro avec streaming pour afficher les réponses en temps réel, offrant une meilleure expérience utilisateur.
 
 ### Intégration Météo
 Détecte automatiquement les questions météo et enrichit le contexte avec des données réelles via OpenWeatherMap.
@@ -137,8 +137,9 @@ Permet de modifier les messages utilisateur et de relancer la conversation à pa
 ## 🐛 Dépannage
 
 ### Le streaming ne fonctionne pas
-- Vérifiez que votre clé OpenAI est valide
-- Assurez-vous d'avoir des crédits sur votre compte OpenAI
+- Vérifiez que votre clé Gemini est valide
+- Assurez-vous que la clé est bien configurée dans `.env.local`
+- Voir `GEMINI_SETUP.md` pour plus de détails
 
 ### La météo ne fonctionne pas
 - Vérifiez que votre clé OpenWeatherMap est valide
