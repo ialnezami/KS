@@ -81,7 +81,7 @@ Utilise ces informations pour répondre à la question de l'utilisateur de mani�
     }
 
     // Initialize Gemini model
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Build conversation history for Gemini (must start with user message)
     let history = messages
