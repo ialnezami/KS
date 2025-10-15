@@ -69,13 +69,9 @@ export async function POST(req: Request) {
         weatherData = await getWeather(city);
         
         if (weatherData) {
-          systemContext = `Informations météo actuelles pour ${weatherData.city}: 
-- Température: ${weatherData.temperature}°C
-- Conditions: ${weatherData.description}
-- Humidité: ${weatherData.humidity}%
-- Vent: ${weatherData.windSpeed} m/s
+          systemContext = `Météo à ${weatherData.city} : ${weatherData.temperature}°C, ${weatherData.description}.
 
-Utilise ces informations pour répondre à la question de l'utilisateur de manière naturelle et conversationnelle.`;
+Donne cette information de manière simple et naturelle, sans détails supplémentaires.`;
         }
       }
     }
@@ -106,10 +102,19 @@ Utilise ces informations pour répondre à la question de l'utilisateur de mani�
       },
     });
 
-    // Prepare the prompt with weather context if available
-    const prompt = systemContext 
-      ? `${systemContext}\n\nQuestion: ${lastMessage.content}`
-      : lastMessage.content;
+    // Prepare the prompt with instructions and context
+    let prompt = '';
+    
+    // Add system instructions for clean responses
+    const instructions = 'Réponds de manière naturelle et directe, sans astérisques ni formatage markdown. Sois bref (2-3 phrases). ';
+    
+    if (systemContext) {
+      // For weather questions
+      prompt = `${instructions}${systemContext}\n\nQuestion: ${lastMessage.content}`;
+    } else {
+      // For general questions
+      prompt = `${instructions}${lastMessage.content}`;
+    }
 
     // Stream the response
     const result = await chat.sendMessageStream(prompt);

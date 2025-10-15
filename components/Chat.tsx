@@ -87,11 +87,14 @@ export default function Chat() {
         const chunkValue = decoder.decode(value, { stream: !done });
 
         if (chunkValue) {
+          // Clean the chunk: remove markdown asterisks and excessive formatting
+          const cleanedChunk = chunkValue.replace(/\*\*/g, '').replace(/\*/g, '');
+          
           setMessages((prev) => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];
             if (lastMessage.role === 'assistant') {
-              lastMessage.content += chunkValue;
+              lastMessage.content += cleanedChunk;
             }
             return newMessages;
           });
