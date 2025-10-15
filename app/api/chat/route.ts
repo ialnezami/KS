@@ -80,8 +80,8 @@ Utilise ces informations pour répondre à la question de l'utilisateur de mani�
       }
     }
 
-    // Initialize Gemini model
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Initialize Gemini model (use gemini-1.5-pro or gemini-pro depending on your API access)
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     // Build conversation history for Gemini (must start with user message)
     let history = messages
