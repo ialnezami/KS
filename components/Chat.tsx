@@ -63,7 +63,7 @@ export default function Chat() {
       }
 
       const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const decoder = new TextDecoder('utf-8');
 
       if (!reader) {
         throw new Error('No reader available');
@@ -82,16 +82,20 @@ export default function Chat() {
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
-        const chunkValue = decoder.decode(value);
+        
+        // Decode with stream option to handle multi-byte characters correctly
+        const chunkValue = decoder.decode(value, { stream: !done });
 
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage.role === 'assistant') {
-            lastMessage.content += chunkValue;
-          }
-          return newMessages;
-        });
+        if (chunkValue) {
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content += chunkValue;
+            }
+            return newMessages;
+          });
+        }
       }
     } catch (error: any) {
       if (error.name === 'AbortError') {
