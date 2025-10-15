@@ -83,11 +83,19 @@ Utilise ces informations pour répondre à la question de l'utilisateur de mani�
     // Initialize Gemini model
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    // Build conversation history for Gemini
-    const history = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
+    // Build conversation history for Gemini (must start with user message)
+    let history = messages
+      .slice(0, -1)
+      .filter((msg: any) => msg.role !== 'system')
+      .map((msg: any) => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }],
+      }));
+    
+    // If history starts with 'model', remove it (Gemini requires user to start)
+    if (history.length > 0 && history[0].role === 'model') {
+      history = history.slice(1);
+    }
 
     // Start chat with history
     const chat = model.startChat({
