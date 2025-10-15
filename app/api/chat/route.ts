@@ -1,13 +1,11 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Disable SSL verification in development only (for local testing)
 if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -62,7 +60,7 @@ export async function POST(req: Request) {
     const cityRegex = /(?:à|a|pour|de|dans|en)\s+([A-Za-zÀ-ÿ\s-]+?)(?:\s|$|\?|,|\.)/i;
     
     let weatherData: WeatherData | null = null;
-    let enhancedMessages = [...messages];
+    let systemContext = '';
 
     if (weatherRegex.test(lastMessage.content)) {
       const cityMatch = lastMessage.content.match(cityRegex);
@@ -71,47 +69,59 @@ export async function POST(req: Request) {
         weatherData = await getWeather(city);
         
         if (weatherData) {
-          // Add weather data to the context
-          enhancedMessages = [
-            ...messages,
-            {
-              role: 'system',
-              content: `Informations météo actuelles pour ${weatherData.city}: 
-                - Température: ${weatherData.temperature}°C
-                - Conditions: ${weatherData.description}
-                - Humidité: ${weatherData.humidity}%
-                - Vent: ${weatherData.windSpeed} m/s
-                
-                Utilise ces informations pour répondre à la question de l'utilisateur de manière naturelle et conversationnelle.`,
-            },
-          ];
+          systemContext = `Informations météo actuelles pour ${weatherData.city}: 
+- Température: ${weatherData.temperature}°C
+- Conditions: ${weatherData.description}
+- Humidité: ${weatherData.humidity}%
+- Vent: ${weatherData.windSpeed} m/s
+
+Utilise ces informations pour répondre à la question de l'utilisateur de manière naturelle et conversationnelle.`;
         }
       }
     }
 
-    // Request the OpenAI API for the response based on the messages
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      stream: true,
-      messages: enhancedMessages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      temperature: 0.7,
-      max_tokens: 500,
+    // Initialize Gemini model
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    // Build conversation history for Gemini
+    const history = messages.slice(0, -1).map((msg: any) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+    // Start chat with history
+    const chat = model.startChat({
+      history,
+      generationConfig: {
+        maxOutputTokens: 500,
+        temperature: 0.7,
+      },
     });
 
-    // Create a readable stream from OpenAI response
+    // Prepare the prompt with weather context if available
+    const prompt = systemContext 
+      ? `${systemContext}\n\nQuestion: ${lastMessage.content}`
+      : lastMessage.content;
+
+    // Stream the response
+    const result = await chat.sendMessageStream(prompt);
+
+    // Create a readable stream from Gemini response
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) {
-            controller.enqueue(encoder.encode(text));
+        try {
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(encoder.encode(text));
+            }
           }
+          controller.close();
+        } catch (error) {
+          console.error('Error in stream:', error);
+          controller.error(error);
         }
-        controller.close();
       },
     });
 
@@ -128,4 +138,3 @@ export async function POST(req: Request) {
     return new Response('Error processing chat request', { status: 500 });
   }
 }
-
